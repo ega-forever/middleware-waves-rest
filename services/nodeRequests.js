@@ -80,6 +80,16 @@ const getBlocksByNumbers = async (numbers) => {
     .value();
 };
 
+/**
+ * @param {String} hash
+ * @return {Promise return Object}
+ */
+const getBlockByHash = async (hash) => {
+  
+  const block = await get(`/blocks/signature/${hash}`);
+  return createBlock(block);
+};
+
 
 module.exports = {
   getBalanceByAddress,
@@ -87,5 +97,6 @@ module.exports = {
 
   getLastBlockNumber,
   getBlockByNumber,
+  getBlockByHash,
   getBlocksByNumbers
 };

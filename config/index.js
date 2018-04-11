@@ -46,6 +46,7 @@ let config = {
       connections: {
         primary: mongoose
       },
+      requests: requests,
       settings: {
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'waves',
@@ -64,8 +65,6 @@ let config = {
 module.exports = (() => {
   //for easy tests
   config.rabbit = config.nodered.functionGlobalContext.settings.rabbit;
-
-  config.requests = requests;
 
   return config;
 })();
