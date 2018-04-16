@@ -21,9 +21,13 @@
     "lint": "node ./node_modules/eslint/bin/eslint.js -c .eslintrc.js --ext .js --fix --ignore-path .eslintignore .",
     "test": "node ./node_modules/mocha/bin/mocha -t 90000 tests"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "chronobank",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ChronoBank/middleware-waves-rest/issues"
+  },
+  "homepage": "https://github.com/ChronoBank/middleware-waves-rest#readme",
+  "description": "Middleware WAVES rest",
   "devDependencies": {
     "babel-eslint": "^8.0.2",
     "chai": "^4.1.1",

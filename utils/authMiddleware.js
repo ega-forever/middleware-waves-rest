@@ -2,7 +2,11 @@
  * Middleware service for handling Authentication
  * @module utils/authMiddleware
  * @requires models/accountModel
- */
+ * 
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Kirill Sergeev <cloudkserg11@gmail.com>
+*/
 
 const accountModel = require('../models/accountModel'),
   AUTH_HEADER = 'authorization',

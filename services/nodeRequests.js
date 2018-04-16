@@ -1,22 +1,31 @@
+/** 
+* Copyright 2017–2018, LaborX PTY
+* Licensed under the AGPL Version 3 license.
+* @author Kirill Sergeev <cloudkserg11@gmail.com>
+*/
 const request = require('request-promise'),
-  config = require('../config'),
   _ = require('lodash'),
   {URL} = require('url'),
   bunyan = require('bunyan'),
   Promise = require('bluebird'),
   log = bunyan.createLogger({name: 'wavesBlockprocessor.nodeSenderService'});
 
+let node = require('../config').node;
 
 
+const getFrom = query => makeRequest(query, 'GET');
 
-const get = query => makeRequest(query, 'GET');
+
+const setNodeConfig = (newNode) => {
+  node = newNode;
+};
 
 
-const makeRequest = (path, method, body, headers = {}) => {
+const makeRequest = function (path, method, body, headers = {})  {
   const options = {
     method,
     body,
-    uri: new URL(path, config.node.rpc),
+    uri: new URL(path, node.rpc),
     json: true,
     headers
   };
@@ -32,16 +41,18 @@ const errorHandler = async (err) => {
 
 
 const getBalanceByAddress = async (address) => {
-  const result = await get(`/addresses/balance/${address}`);
+  const result = await getFrom(`/addresses/balance/${address}`);
   return _.get(result, 'balance', null);
 };
 
 const getBalanceByAddressAndAsset = async (address, assetId) => {
-  const result = await get(`/assets/balance/${address}/${assetId}`);
+  const result = await getFrom(`/assets/balance/${address}/${assetId}`);
   return _.get(result, 'balance', null);
 };
 
 const createBlock = (block) => {
+  if (block.signature === undefined) 
+    return block;
   return _.merge(block, {
     hash: block.signature
   });
@@ -53,9 +64,10 @@ const createBlock = (block) => {
  * @return {Promise return Number}
  */
 const getLastBlockNumber = async () => {
-  const result = await get('/blocks/height');
+  const result = await getFrom('/blocks/height');
   return ((result.height && result.height > 0) ? result.height : 0);
 };
+
 
 /**
  * 
@@ -63,7 +75,7 @@ const getLastBlockNumber = async () => {
  * @return {Promise return Object}
  */
 const getBlockByNumber = async (height) => {
-  const block = await get(`/blocks/at/${height}`);
+  const block = await getFrom(`/blocks/at/${height}`);
   return createBlock(block); 
 };
 
@@ -86,15 +98,18 @@ const getBlocksByNumbers = async (numbers) => {
  */
 const getBlockByHash = async (hash) => {
   
-  const block = await get(`/blocks/signature/${hash}`);
+  const block = await getFrom(`/blocks/signature/${hash}`);
   return createBlock(block);
 };
 
 
-module.exports = {
+
+
+module.exports = {  
   getBalanceByAddress,
   getBalanceByAddressAndAsset,
 
+  setNodeConfig,
   getLastBlockNumber,
   getBlockByNumber,
   getBlockByHash,

@@ -24,16 +24,14 @@ The available routes are listed below:
 
 | route | mwavesods | params | description |
 | ------ | ------ | ------ | ------ |
-| /addr   | POST | ``` {address: <string>, erc20tokens: [<string>], nem: [<string>]} ``` | register new address on middleware. erc20tokens - is an array of erc20Tokens, which balance changes this address will listen to (optional), nem - is nem's address (optional).
+| /addr   | POST | ``` {address: <string>, assets: [<string>], nem: [<string>]} ``` | register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional), nem - is nem's address (optional).
 | /addr   | DELETE | ``` {address: <string>} ``` | mark an address as inactive and stop perform any actions for this address.
-| /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | push passed erc20tokens to an exsiting one for the registered user.
-| /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | pull passed erc20tokens from an exsiting one for the registered user.
+| /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | push passed assets to an exsiting one for the registered user.
+| /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | pull passed assets from an exsiting one for the registered user.
 | /addr/{address}/balance   | GET |  | retrieve balance of the registered address
 | /tx/{address}/history/{startBlock}/{endBlock}   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
 | /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
 | /tx/{hash}   | GET | | return tx by its hash
-| /events   | GET | |returns list of all available events
-| /events/{event_name}   | GET | |returns an event's collection
 
 
 #### REST guery language
@@ -62,6 +60,7 @@ NODE_RED_MONGO_COLLECTION_PREFIX=rest
 REST_PORT=8081
 NETWORK=development
 NODERED_AUTO_SYNC_MIGRATIONS=true
+NIS=http://localhost:6869
 ```
 
 The options are presented below:
@@ -78,11 +77,13 @@ The options are presented below:
 | NODE_RED_MONGO_COLLECTION_PREFIX   | the collection prefix for node-red collections in mongo (If not specified, then the collections will be created without prefix)
 | REST_PORT   | rest plugin port
 | NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
-| NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
-| NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
-
+| RPC | rpc path for node waves api 
+| BLOCK_GENERATION_TIME | generation time for block
 License
 ----
+ [GNU AGPLv3](LICENSE)
 
-MIT
+Copyright
+----
+LaborX PTY
