@@ -19,16 +19,14 @@ mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
-const requests = require('./services/nodeRequests'),
-  accountModel = require('../models/accountModel'),
-  blockModel = require('../models/blockModel'),
+const accountModel = require('../models/accountModel'),
+  txModel = require('../models/txModel'),
   clearQueues = require('./helpers/clearQueues'),
   connectToQueue = require('./helpers/connectToQueue'),
   consumeMessages = require('./helpers/consumeMessages'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
   request = require('request'),
-  moment = require('moment'),
   amqp = require('amqplib');
 
 let accounts, amqpInstance;
@@ -36,7 +34,9 @@ let accounts, amqpInstance;
 describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
 
   before(async () => {
-    await accountModel.remove();
+    await txModel.remove();
+    await accountModel.remove();    
+    
     amqpInstance = await amqp.connect(config.rabbit.url);
 
     accounts = config.dev.accounts;
@@ -258,81 +258,99 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  // let exampleTransactionHash;
+  let exampleTransactionHash;
 
-  // it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
-  //   const address = accounts[0];
+  it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
+    const txs = [{
+      'recipient' : accounts[1],
+      'type' : '257',
+      'sender' : accounts[0],
+      'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      amount: 200,
+      timeStamp: Date.now(),
+      'blockNumber' : 1425994
+    }, {
+      'recipient' : 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
+      'type' : '257',
+      timeStamp: Date.now(),
+      'sender' : 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
+      'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      amount: 100,
+      'blockNumber' : 1425994
+    }];
+    
+    exampleTransactionHash = txs[0].hash;
+    await new txModel(txs[0]).save();
+    await new txModel(txs[1]).save();
 
-  //   const transferTx = await requests.signTransaction(config.dev.apiKey, accounts[1], 100, accounts[0]);
-  //   await requests.sendTransaction(config.dev.apiKey, transferTx);
-  //   exampleTransactionHash = transferTx.signature;
-  //   await Promise.delay(5000);
+    const query = 'limit=1';
 
-  //   const query = 'limit=1';
+    await new Promise((res, rej) => {
+      request({
+        url: `http://localhost:${config.rest.port}/tx/${accounts[0]}/history?${query}`,
+        method: 'GET',
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200) 
+          return rej(err || resp);
 
-  //   await new Promise((res, rej) => {
-  //     request({
-  //       url: `http://localhost:${config.rest.port}/tx/${address}/history?${query}`,
-  //       method: 'GET',
-  //     }, async (err, resp) => {
-  //       if (err || resp.statusCode !== 200) 
-  //         return rej(err || resp);
+        try {
+          expect(resp.body).to.not.be.empty;
+          const body = JSON.parse(resp.body);
+          expect(body).to.be.an('array').not.empty;
 
-  //       try {
-  //         expect(resp.body).to.not.be.empty;
-  //         const body = JSON.parse(resp.body);
-  //         expect(body).to.be.an('array').not.empty;
-
-  //         const respTx = body[0];
-  //         expect(respTx.to).to.equal(accounts[1]);
-  //         expect(respTx.from).to.equal(accounts[0]);
-  //         expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
-  //         res();            
-  //       } catch (e) {
-  //         rej(e || resp);
-  //       }
-  //     });
-  //   });
-  // });
-
-
-  // it('GET tx/:addr/history for non exist', async () => {
-  //   const address = 'LAAAAAAAAAAAAAAAALLL';
-
-
-
-  //   await new Promise((res, rej) => {
-  //     request({
-  //       url: `http://localhost:${config.rest.port}/tx/${address}/history`,
-  //       method: 'GET',
-  //     }, async (err, resp) => {
-  //       if (err || resp.statusCode !== 200) 
-  //         return rej(err || resp);
-
-  //       const body = resp.body;
-  //       expect(body).to.be.equal('');
-  //       res();
-  //     });
-  //   });
-  // });
-
-  // it('GET tx/:hash for transaction [0 => 1]', async () => {
-  //   await new Promise((res, rej) => {
-  //     request({
-  //       url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
-  //       method: 'GET',
-  //     }, (err, resp) => {
-  //       if (err || resp.statusCode !== 200) 
-  //         return rej(err || resp);
-
-  //       const respTx = JSON.parse(resp.body);
-  //       expect(respTx.to).to.equal(accounts[1]);
-  //       expect(respTx.from).to.equal(accounts[0]);
-  //       expect(respTx).to.contain.all.keys(['to', 'from', 'hash', 'blockNumber', 'blockHash']);
-  //       res();
-  //     });
-  //   });
-  // });
+          const respTx = body[0];
+          expect(respTx.recipient).to.equal(accounts[1]);
+          expect(respTx.sender).to.equal(accounts[0]);
+          expect(respTx.hash).to.equal(exampleTransactionHash);
+          expect(respTx).to.contain.all.keys([
+            'hash', 'blockNumber', 'timestamp', 'amount']
+          );
+          res();            
+        } catch (e) {
+          rej(e || resp);
+        }
+      });
+    });
+  });
 
 
+  it('GET tx/:addr/history for non exist', async () => {
+    const address = 'LAAAAAAAAAAAAAAAALLL';
+
+
+
+    await new Promise((res, rej) => {
+      request({
+        url: `http://localhost:${config.rest.port}/tx/${address}/history`,
+        method: 'GET',
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200) 
+          return rej(err || resp);
+
+        const body = JSON.parse(resp.body);
+        expect(body).to.be.empty;
+        res();
+      });
+    });
+  });
+
+  it('GET tx/:hash for transaction [0 => 1]', async () => {
+    await new Promise((res, rej) => {
+      request({
+        url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
+        method: 'GET',
+      }, (err, resp) => {
+        if (err || resp.statusCode !== 200) 
+          return rej(err || resp);
+
+        const respTx = JSON.parse(resp.body);
+        expect(respTx.recipient).to.equal(accounts[1]);
+        expect(respTx.sender).to.equal(accounts[0]);
+        expect(respTx).to.contain.all.keys([
+          'sender', 'recipient', 'hash', 'blockNumber', 'amount', 'timestamp'
+        ]);
+        res();
+      });
+    });
+  });
 });

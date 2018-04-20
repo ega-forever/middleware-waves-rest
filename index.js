@@ -35,9 +35,8 @@ const init = async () => {
     filter: /(.+Model)\.js$/
   });
 
-  if (config.mongo.data.useData) {
+  if (config.mongo.data.useData) 
     require('./models/blockModel');
-  }
 
 
   if (config.nodered.autoSyncMigrations)
