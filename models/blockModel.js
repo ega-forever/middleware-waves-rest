@@ -2,11 +2,12 @@
  * Mongoose model. Represents a block in eth
  * @module models/blockModel
  * @returns {Object} Mongoose model
+ *
  * 
  * Copyright 2017–2018, LaborX PTY
  * Licensed under the AGPL Version 3 license.
  * @author Kirill Sergeev <cloudkserg11@gmail.com>
-*/
+ */
 
 const mongoose = require('mongoose'),
   config = require('../config');
@@ -26,10 +27,7 @@ const Block = new mongoose.Schema({
   blocksize: {type: String},
   fee: {type: String},  
   transactionCount: {type: String},
-
-
-  network: {type: String},
   created: {type: Date, required: true, default: Date.now}
 });
 
-module.exports = mongoose.model(`${config.mongo.data.collectionPrefix}Block`, Block);
+module.exports = mongoose.data.model(`${config.mongo.data.collectionPrefix}Block`, Block);
