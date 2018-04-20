@@ -20,7 +20,7 @@ mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
 const accountModel = require('../models/accountModel'),
-  txModel = require('../models/txModel'),
+  txModel = require('./models/txModel'),
   clearQueues = require('./helpers/clearQueues'),
   connectToQueue = require('./helpers/connectToQueue'),
   consumeMessages = require('./helpers/consumeMessages'),
