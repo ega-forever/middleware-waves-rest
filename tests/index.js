@@ -133,31 +133,31 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];    
+  // it('address/remove from rabbit mq', async () => {
+  //   const removeAddress = _.pullAt(accounts, accounts.length-1)[0];    
 
-    await Promise.all([
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        const info = {address: removeAddress};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
+  //   await Promise.all([
+  //     (async () => {
+  //       const channel = await amqpInstance.createChannel();
+  //       const info = {address: removeAddress};
+  //       await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
     
-        await Promise.delay(3000);
+  //       await Promise.delay(3000);
     
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-      })(),
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
-        return await consumeMessages(1, channel, (message) => {
-          const content = JSON.parse(message.content);
-          expect(content.address).to.be.equal(removeAddress);
-        });
-      })()
-    ]);
-  });
+  //       const account = await getAccountFromMongo(removeAddress);
+  //       expect(account).not.to.be.null;
+  //       expect(account.isActive).to.be.false;
+  //     })(),
+  //     (async () => {
+  //       const channel = await amqpInstance.createChannel();
+  //       await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
+  //       return await consumeMessages(1, channel, (message) => {
+  //         const content = JSON.parse(message.content);
+  //         expect(content.address).to.be.equal(removeAddress);
+  //       });
+  //     })()
+  //   ]);
+  // });
 
   const tokenForAsset = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
   
