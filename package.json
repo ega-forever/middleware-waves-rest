@@ -33,7 +33,6 @@
     "chai": "^4.1.1",
     "eslint": "^4.6.1",
     "eslint-plugin-chronobank": "github:chronobank/eslint-plugin-chronobank",
-    "middleware-waves-blockprocessor": "github:chronobank/middleware-waves-blockprocessor",
     "mocha": "^3.5.0",
     "moment": "^2.21.0",
     "sockjs-client": "^1.1.4",
