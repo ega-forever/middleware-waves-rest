@@ -73,33 +73,33 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  it('address/create from rabbit mq', async () => {
-    const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
-    accounts.push(newAddress);    
+  // it('address/create from rabbit mq', async () => {
+  //   const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
+  //   accounts.push(newAddress);    
 
-    await Promise.all([
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        const info = {address: newAddress};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
+  //   await Promise.all([
+  //     (async () => {
+  //       const channel = await amqpInstance.createChannel();
+  //       const info = {address: newAddress};
+  //       await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
     
-        await Promise.delay(3000);
+  //       await Promise.delay(3000);
     
-        const account = await getAccountFromMongo(newAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.true;
-        expect(account.balance.toNumber()).to.be.equal(0);
-      })(),
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
-        await consumeMessages(1, channel, (message) => {
-          const content = JSON.parse(message.content);
-          expect(content.address).to.be.equal(newAddress);
-        });
-      })()
-    ]);
-  });
+  //       const account = await getAccountFromMongo(newAddress);
+  //       expect(account).not.to.be.null;
+  //       expect(account.isActive).to.be.true;
+  //       expect(account.balance.toNumber()).to.be.equal(0);
+  //     })(),
+  //     (async () => {
+  //       const channel = await amqpInstance.createChannel();
+  //       await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
+  //       await consumeMessages(1, channel, (message) => {
+  //         const content = JSON.parse(message.content);
+  //         expect(content.address).to.be.equal(newAddress);
+  //       });
+  //     })()
+  //   ]);
+  // });
 
   it('address/update balance address by amqp', async () => {
     const channel = await amqpInstance.createChannel();
@@ -133,31 +133,31 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];    
+  // it('address/remove from rabbit mq', async () => {
+  //   const removeAddress = _.pullAt(accounts, accounts.length-1)[0];    
 
-    await Promise.all([
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        const info = {address: removeAddress};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
+  //   await Promise.all([
+  //     (async () => {
+  //       const channel = await amqpInstance.createChannel();
+  //       const info = {address: removeAddress};
+  //       await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
     
-        await Promise.delay(3000);
+  //       await Promise.delay(3000);
     
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-      })(),
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
-        return await consumeMessages(1, channel, (message) => {
-          const content = JSON.parse(message.content);
-          expect(content.address).to.be.equal(removeAddress);
-        });
-      })()
-    ]);
-  });
+  //       const account = await getAccountFromMongo(removeAddress);
+  //       expect(account).not.to.be.null;
+  //       expect(account.isActive).to.be.false;
+  //     })(),
+  //     (async () => {
+  //       const channel = await amqpInstance.createChannel();
+  //       await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
+  //       return await consumeMessages(1, channel, (message) => {
+  //         const content = JSON.parse(message.content);
+  //         expect(content.address).to.be.equal(removeAddress);
+  //       });
+  //     })()
+  //   ]);
+  // });
 
   const tokenForAsset = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
   
