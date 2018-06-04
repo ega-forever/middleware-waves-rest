@@ -24,7 +24,7 @@ The available routes are listed below:
 
 | route | mwavesods | params | description |
 | ------ | ------ | ------ | ------ |
-| /addr   | POST | ``` {address: <string>, assets: [<string>], nem: [<string>]} ``` | register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional), nem - is nem's address (optional).
+| /addr   | POST | ``` {address: <string>, assets: [<string>]} ``` | register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional).
 | /addr   | DELETE | ``` {address: <string>} ``` | mark an address as inactive and stop perform any actions for this address.
 | /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | push passed assets to an exsiting one for the registered user.
 | /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | pull passed assets from an exsiting one for the registered user.
