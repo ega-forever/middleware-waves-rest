@@ -80,6 +80,7 @@ The options are presented below:
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
 | RPC | rpc path for node waves api 
 | BLOCK_GENERATION_TIME | generation time for block
+
 License
 ----
  [GNU AGPLv3](LICENSE)
