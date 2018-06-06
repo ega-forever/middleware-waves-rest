@@ -20,14 +20,14 @@ So, you don't need to write any code - you can create your own flow with UI tool
 #### Predefined Routes with node-red flows
 
 | description | route | method | params | output | 
-| ------ | ------ | ------ | ------ | ------ | 
-| get transactions for the registered address (by default skip = 0, limit=100) | /tx/:addr/history   | GET | ``` {addr: <string>, limit: <Number>, skip: <Number> ```  |``` [<Object of tx>] ``` [view example](examples/history.md)  
+| --------- | ---- | - | ---- | --- | 
+| get transactions for the registered address (by default skip = 0, limit=100) | /tx/:addr/history   | GET | ``` {addr: <string>, limit: <Number>, skip: <Number> ```  |```[<Object of tx>]```  [view example](examples/history.md)  
 | get balance of the registered address| /addr/:addr/balance  | GET | ``` {addr: <string>} ``` | ``` {balance: <Number>, assets: {assetId: <Number>}} ```  [view example](examples/balance.md) 
-| get tx by its hash | /tx/{hash}   | GET | ``` {hash: <string>} ``` | ```<Object of tx> ``` [view example](examples/tx.md) 
-| register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional). | /addr   | POST | ``` {address: <string>, assets: [<string>]} ``` | ``` {code: <Number>, message: <string>} ``` example: ```{code: 1, message: 'ok'} ``` 
-| mark an address as inactive and stop perform any actions for this address. | /addr | DELETE | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ``` example: ```{code: 1, message: 'ok'} ``` 
-| push passed assets to an existing one for the registered user. | /addr/:addr/token   | POST | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ``` example: ```{code: 1, message: 'ok'} ``` 
-| delete passed assets  from the registered user. | /addr/:addr/token   | DELETE | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ``` example: ```{code: 1, message: 'ok'} ``
+| get tx by its hash | /tx/{hash}   | GET | ``` {hash: <string>} ``` | ```<Object of tx>```  [view example](examples/tx.md) 
+| register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional). | /addr   | POST | ``` {address: <string>, assets: [<string>]} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| mark an address as inactive and stop perform any actions for this address. | /addr | DELETE | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| push passed assets to an existing one for the registered user. | /addr/:addr/token   | POST | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ``` <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| delete passed assets  from the registered user. | /addr/:addr/token   | DELETE | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ``` {code: 1, message: 'ok'} ```
 
 ##### сonfigure your .env
 
