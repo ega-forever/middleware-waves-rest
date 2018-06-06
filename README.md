@@ -22,9 +22,9 @@ So, you don't need to write any code - you can create your own flow with UI tool
 
 The available routes are listed below:
 
-| route | mwavesods | params | description |
-| ------ | ------ | ------ | ------ |
-| /addr   | POST | ``` {address: <string>, assets: [<string>], nem: [<string>]} ``` | register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional), nem - is nem's address (optional).
+| route | method | params | description |
+| ------ | ------ | ------ | ------ | 
+| /addr   | POST | ``` {address: <string>, assets: [<string>]} ``` | register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional).
 | /addr   | DELETE | ``` {address: <string>} ``` | mark an address as inactive and stop perform any actions for this address.
 | /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | push passed assets to an exsiting one for the registered user.
 | /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | pull passed assets from an exsiting one for the registered user.
@@ -32,6 +32,14 @@ The available routes are listed below:
 | /tx/{address}/history/{startBlock}/{endBlock}   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
 | /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
 | /tx/{hash}   | GET | | return tx by its hash
+
+#### Output of endpoints
+
+/addr/{address}/balance:
+
+```
+{"balance":"1028000004216500","assets":{"8V15mJPWMiriHQZwrjLGAoQNP84yutotnSmVrFKBGFtZ":10000000}}
+````
 
 
 #### REST guery language
@@ -80,6 +88,7 @@ The options are presented below:
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
 | RPC | rpc path for node waves api 
 | BLOCK_GENERATION_TIME | generation time for block
+
 License
 ----
  [GNU AGPLv3](LICENSE)
