@@ -80,11 +80,10 @@ describe('core/rest', function () { //todo add integration tests for query, push
         await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', 
           `${config.rabbit.serviceName}_user.created`
         );
-        await consumeMessages(1, channel, (message) => {
+        channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
           const content = JSON.parse(message.content);
-          console.log(content.address);
           expect(content.address).to.be.equal(newAddress);
-        }, `${config.rabbit.serviceName}_test.user`);
+        }, {noAck: true});
       })()
     ]);
 
