@@ -9,14 +9,7 @@
 */
 require('dotenv').config();
 const path = require('path'),
-  mongoose = require('mongoose'),
-  requests = require('../services/nodeRequests');
-
-const node = {
-  rpc: process.env.RPC || 'http://localhost:6869',
-  network: process.env.NETWORK || 'testnet',
-  blockGenerationTime: process.env.BLOCK_GENERATION_TIME || 60
-};
+  mongoose = require('mongoose');
 
 let config = {
   mongo: {
@@ -30,7 +23,6 @@ let config = {
       useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
     }
   },
-  node,
   rest: {
     domain: process.env.DOMAIN || 'localhost',
     port: parseInt(process.env.REST_PORT) || 8081,
@@ -49,8 +41,6 @@ let config = {
       connections: {
         primary: mongoose
       },
-      requests,
-      nodeConfig: node,
 
       settings: {
         mongo: {
