@@ -45,9 +45,7 @@ NODERED_MONGO_URI=mongodb://localhost:27018/data
 NODE_RED_MONGO_COLLECTION_PREFIX=rest
 
 REST_PORT=8081
-NETWORK=development
 NODERED_AUTO_SYNC_MIGRATIONS=true
-NIS=http://localhost:6869
 ```
 
 The options are presented below:
@@ -63,10 +61,7 @@ The options are presented below:
 | NODERED_MONGO_URI   | the URI string for mongo connection, which holds data collections (for instance, processed block's height). In case, it's not specified, then default MONGO_URI connection will be used)
 | NODE_RED_MONGO_COLLECTION_PREFIX   | the collection prefix for node-red collections in mongo (If not specified, then the collections will be created without prefix)
 | REST_PORT   | rest plugin port
-| NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
-| RPC | rpc path for node waves api 
-| BLOCK_GENERATION_TIME | generation time for block
 
 License
 ----
