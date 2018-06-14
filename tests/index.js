@@ -53,7 +53,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     await clearQueues(amqpInstance);
   });
 
-  /*it('address/create from post request', async () => {
+  it('address/create from post request', async () => {
     const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);
 
@@ -88,7 +88,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       })()
     ]);
 
-  });*/
+  });
 
   it('tx/send send signedTransaction', async () => {
     tx = signPrivateTransaction(config.dev.privateKeys[1], {
@@ -117,7 +117,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       });
     });
   });
-/*
+
   // it('address/create from rabbit mq', async () => {
   //   const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
   //   accounts.push(newAddress);    
@@ -397,5 +397,5 @@ describe('core/rest', function () { //todo add integration tests for query, push
         res();
       });
     });
-  });*/
+  });
 });
