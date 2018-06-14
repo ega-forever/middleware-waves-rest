@@ -1,5 +1,5 @@
 
-module.exports.id = '21.tabs';
+module.exports.id = 'tabs';
 
 const _ = require('lodash'),
   config = require('../config');
