@@ -30,6 +30,7 @@ So, you don't need to write any code - you can create your own flow with UI tool
 | delete passed assets  from the registered user. | /addr/:addr/token   | DELETE | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ``` {code: 1, message: 'ok'} ```
 | send signed tx | /tx/send | POST | ```{tx: <Object of prepared tx>}``` [view example] (examples/tx_send.md) | ```{tx: <Object of tx>}``` [view example](examples/tx.md)
 
+
 ##### сonfigure your .env
 
 To apply your configuration, create a .env file in root folder of repo (in case it's not present already).
@@ -81,6 +82,8 @@ The options are presented below:
 | PUBLIC_KEY_ONE | public key for first account
 | PRIVATE_KEY_TWO | private key for second account
 | PUBLIC_KEY_TWO | public key for second account
+| RPC | rpc path for node waves api 
+
 
 
 License
