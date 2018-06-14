@@ -9,7 +9,16 @@
 */
 require('dotenv').config();
 const path = require('path'),
-  mongoose = require('mongoose');
+  requests = require('../services/nodeRequests'),
+  mongoose = require('mongoose'),
+  rest = {
+    domain: process.env.DOMAIN || 'localhost',
+    port: parseInt(process.env.REST_PORT) || 8081,
+    auth: process.env.USE_AUTH || false
+  }, 
+  node = {
+    rpc: process.env.RPC || 'http://localhost:6869'
+  };
 
 let config = {
   mongo: {
@@ -23,11 +32,8 @@ let config = {
       useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
     }
   },
-  rest: {
-    domain: process.env.DOMAIN || 'localhost',
-    port: parseInt(process.env.REST_PORT) || 8081,
-    auth: process.env.USE_AUTH || false
-  },
+  node,
+  rest,
   nodered: {
     mongo: {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
@@ -37,12 +43,16 @@ let config = {
     customNodesDir: [path.join(__dirname, '../')],
     migrationsDir: path.join(__dirname, '../migrations'),
     migrationsInOneFile: true,
+    httpAdminRoot: process.env.HTTP_ADMIN || false,
     functionGlobalContext: {
       connections: {
         primary: mongoose
       },
 
       settings: {
+        node,
+        requests,
+        apiKey: process.env.API_KEY || 'password',
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'waves',
           collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'waves'

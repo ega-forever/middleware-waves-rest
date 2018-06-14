@@ -26,6 +26,7 @@ const accountModel = require('../models/accountModel'),
   consumeMessages = require('./helpers/consumeMessages'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
+  signPrivateTransaction = require('./services/signPrivateTransaction'),
   request = require('request'),
   amqp = require('amqplib');
 
@@ -52,7 +53,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     await clearQueues(amqpInstance);
   });
 
-  it('address/create from post request', async () => {
+  /*it('address/create from post request', async () => {
     const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);
 
@@ -87,8 +88,36 @@ describe('core/rest', function () { //todo add integration tests for query, push
       })()
     ]);
 
-  });
+  });*/
 
+  it('tx/send send signedTransaction', async () => {
+    tx = signPrivateTransaction(config.dev.privateKeys[1], {
+      senderPublicKey: config.dev.publicKeys[1],
+      recipient: accounts[0],
+      fee: 100000,
+      amount: 100,
+      type: 4,
+      timestamp: Date.now()
+    });
+
+    await new Promise((res, rej) => {
+      request({
+        url: `http://localhost:${config.rest.port}/tx/send`,
+        method: 'POST',
+        json: {tx}
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+        
+        const body = resp.body;
+        expect(body.senderPublicKey).to.eq(config.dev.publicKeys[1]);
+        expect(body.fee).to.eq(100000);
+        expect(body.id).to.not.empty;
+        res();
+      });
+    });
+  });
+/*
   // it('address/create from rabbit mq', async () => {
   //   const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
   //   accounts.push(newAddress);    
@@ -368,5 +397,5 @@ describe('core/rest', function () { //todo add integration tests for query, push
         res();
       });
     });
-  });
+  });*/
 });

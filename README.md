@@ -28,6 +28,7 @@ So, you don't need to write any code - you can create your own flow with UI tool
 | mark an address as inactive and stop perform any actions for this address. | /addr | DELETE | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
 | push passed assets to an existing one for the registered user. | /addr/:addr/token   | POST | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ``` <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
 | delete passed assets  from the registered user. | /addr/:addr/token   | DELETE | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ``` {code: 1, message: 'ok'} ```
+| send signed tx | /tx/send | POST | ```{tx: <Object of prepared tx>}``` [view example] (examples/tx_send.md) | ```{tx: <Object of tx>}``` [view example](examples/tx.md)
 
 ##### сonfigure your .env
 
@@ -46,6 +47,9 @@ NODE_RED_MONGO_COLLECTION_PREFIX=rest
 
 REST_PORT=8081
 NODERED_AUTO_SYNC_MIGRATIONS=true
+API_KEY=password
+HTTP_ADMIN=/admin
+RPC=http://localhost:6869
 ```
 
 The options are presented below:
@@ -62,6 +66,22 @@ The options are presented below:
 | NODE_RED_MONGO_COLLECTION_PREFIX   | the collection prefix for node-red collections in mongo (If not specified, then the collections will be created without prefix)
 | REST_PORT   | rest plugin port
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
+| API_KEY | api key for node waves [private requests]
+| HTTP_ADMIN | admin path for nodered or false (if not publish as default)
+| RPC   | the path to waves rest api for get balance for user 
+
+#### Configure env for tests
+
+
+| name | description|
+| ------ | ------ |
+| ACCOUNT_ONE | address for first account
+| ACCOUNT_TWO | address for second account
+| PRIVATE_KEY_ONE | private key for first account
+| PUBLIC_KEY_ONE | public key for first account
+| PRIVATE_KEY_TWO | private key for second account
+| PUBLIC_KEY_TWO | public key for second account
+
 
 License
 ----
