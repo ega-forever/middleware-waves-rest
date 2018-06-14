@@ -26,6 +26,7 @@ const accountModel = require('../models/accountModel'),
   consumeMessages = require('./helpers/consumeMessages'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
+  signPrivateTransaction = require('./services/signPrivateTransaction'),
   request = require('request'),
   amqp = require('amqplib');
 
@@ -52,27 +53,71 @@ describe('core/rest', function () { //todo add integration tests for query, push
     await clearQueues(amqpInstance);
   });
 
-  it('address/create from post request', async () => {
+  /*it('address/create from post request', async () => {
     const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);
 
+    await new Promise.all([
+      (async() => {
+        await new Promise((res, rej) => {
+          request({
+            url: `http://localhost:${config.rest.port}/addr/`,
+            method: 'POST',
+            json: {address: newAddress}
+          }, async (err, resp) => {
+            if (err || resp.statusCode !== 200) 
+              return rej(err || resp);
+            const account = await getAccountFromMongo(newAddress);
+            expect(account).not.to.be.null;
+            expect(account.isActive).to.be.true;
+            res();
+          });
+        });
+      })(),
+      (async () => {
+        const channel = await amqpInstance.createChannel();
+        await channel.assertExchange('internal', 'topic', {durable: false});
+        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
+        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', 
+          `${config.rabbit.serviceName}_user.created`
+        );
+        channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
+          const content = JSON.parse(message.content);
+          expect(content.address).to.be.equal(newAddress);
+        }, {noAck: true});
+      })()
+    ]);
+
+  });*/
+
+  it('tx/send send signedTransaction', async () => {
+    tx = signPrivateTransaction(config.dev.privateKeys[1], {
+      senderPublicKey: config.dev.publicKeys[1],
+      recipient: accounts[0],
+      fee: 100000,
+      amount: 100,
+      type: 4,
+      timestamp: Date.now()
+    });
+
     await new Promise((res, rej) => {
       request({
-        url: `http://localhost:${config.rest.port}/addr/`,
+        url: `http://localhost:${config.rest.port}/tx/send`,
         method: 'POST',
-        json: {address: newAddress}
+        json: {tx}
       }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
+        if (err || resp.statusCode !== 200)
           return rej(err || resp);
-        const account = await getAccountFromMongo(newAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.true;
-        expect(account.balance.toNumber()).to.be.equal(0);
+        
+        const body = resp.body;
+        expect(body.senderPublicKey).to.eq(config.dev.publicKeys[1]);
+        expect(body.fee).to.eq(100000);
+        expect(body.id).to.not.empty;
         res();
       });
     });
   });
-
+/*
   // it('address/create from rabbit mq', async () => {
   //   const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
   //   accounts.push(newAddress);    
@@ -101,17 +146,17 @@ describe('core/rest', function () { //todo add integration tests for query, push
   //   ]);
   // });
 
-  it('address/update balance address by amqp', async () => {
-    const channel = await amqpInstance.createChannel();
-    const info = {address: accounts[0]};
-    await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
+  // it('address/update balance address by amqp', async () => {
+  //   const channel = await amqpInstance.createChannel();
+  //   const info = {address: accounts[0]};
+  //   await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
 
-    await Promise.delay(3000);
+  //   await Promise.delay(3000);
 
-    const account = await getAccountFromMongo(accounts[0]);
-    expect(account).not.to.be.null;
-    expect(account.balance.toNumber()).to.be.greaterThan(0);
-  });
+  //   const account = await getAccountFromMongo(accounts[0]);
+  //   expect(account).not.to.be.null;
+  //   expect(account.balance.toNumber()).to.be.greaterThan(0);
+  // });
 
   it('address/remove by rest', async () => {
     const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
@@ -352,5 +397,5 @@ describe('core/rest', function () { //todo add integration tests for query, push
         res();
       });
     });
-  });
+  });*/
 });

@@ -20,6 +20,9 @@ const setNodeConfig = (newNode) => {
   node = newNode;
 };
 
+const privatePost = (query, body, apiKey) => makeRequest(query, 'POST', body, {
+  'X-API-Key': apiKey
+});
 
 const makeRequest = function (path, method, body, headers = {})  {
   const options = {
@@ -104,10 +107,51 @@ const getBlockByHash = async (hash) => {
 
 
 
+/**
+ * 
+ * @param {String} apiKey 
+ * @param {Object} tx
+ * @return {Promise return Object}
+ */
+const sendIssueTransaction = async (apiKey, tx) => {
+  return await privatePost('assets/broadcast/issue', tx, apiKey);
+};
+
+/**
+ * only for test
+ * @param {String} apiKey 
+ * @param {Object} tx 
+ * @return {Promise}
+ */
+const sendTransaction = async (apiKey, tx) => {
+  return await privatePost('transactions/broadcast', tx, apiKey);
+};
+
+/**
+ * only for test
+ * @param {String} apiKey
+ * @param {Object} tx
+ * @return {Promise}
+ */
+const sendAssetTransaction = async (apiKey, tx) => {
+  return await privatePost('assets/broadcast/transfer', tx, apiKey);
+};
+
+
+const sendAliasTransaction = async (apiKey, tx) => {
+  return await privatePost('alias/broadcast/create', tx, apiKey);
+};
+
 
 module.exports = {  
   getBalanceByAddress,
   getBalanceByAddressAndAsset,
+
+
+  sendAliasTransaction,
+  sendAssetTransaction,
+  sendTransaction,
+  sendIssueTransaction,
 
   setNodeConfig,
   getLastBlockNumber,
