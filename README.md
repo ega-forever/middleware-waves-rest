@@ -19,35 +19,16 @@ So, you don't need to write any code - you can create your own flow with UI tool
 
 #### Predefined Routes with node-red flows
 
-
-The available routes are listed below:
-
-| route | method | params | description |
-| ------ | ------ | ------ | ------ | 
-| /addr   | POST | ``` {address: <string>, assets: [<string>]} ``` | register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional).
-| /addr   | DELETE | ``` {address: <string>} ``` | mark an address as inactive and stop perform any actions for this address.
-| /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | push passed assets to an exsiting one for the registered user.
-| /addr/{address}/token   | POST | ``` {assets: [<string>]} ``` | pull passed assets from an exsiting one for the registered user.
-| /addr/{address}/balance   | GET |  | retrieve balance of the registered address
-| /tx/{address}/history/{startBlock}/{endBlock}   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
-| /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
-| /tx/{hash}   | GET | | return tx by its hash
-
-#### Output of endpoints
-
-/addr/{address}/balance:
-
-```
-{"balance":"1028000004216500","assets":{"8V15mJPWMiriHQZwrjLGAoQNP84yutotnSmVrFKBGFtZ":10000000}}
-````
-
-
-#### REST guery language
-
-Every collection could be fetched with an additional query. The api use [query-to-mongo](https://www.npmjs.com/package/query-to-mongo) plugin as a backbone layer between GET request queries and mongo's. For instance, if we want to fetch all recods from collection 'issue', where issueNumber < 20, then we will make a call like that:
-```
-curl http://localhost:8080/events/issue?issueNumber<20
-```
+| description | route | method | params | output | 
+| --------- | ---- | - | ---- | --- | 
+| get transactions for the registered address (by default skip = 0, limit=100) | /tx/:addr/history   | GET | ``` {addr: <string>, limit: <Number>, skip: <Number> ```  |```[<Object of tx>]```  [view example](examples/history.md)  
+| get balance of the registered address| /addr/:addr/balance  | GET | ``` {addr: <string>} ``` | ``` {balance: <Number>, assets: {assetId: <Number>}} ```  [view example](examples/balance.md) 
+| get tx by its hash | /tx/{hash}   | GET | ``` {hash: <string>} ``` | ```<Object of tx>```  [view example](examples/tx.md) 
+| register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional). | /addr   | POST | ``` {address: <string>, assets: [<string>]} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| mark an address as inactive and stop perform any actions for this address. | /addr | DELETE | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| push passed assets to an existing one for the registered user. | /addr/:addr/token   | POST | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ``` <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| delete passed assets  from the registered user. | /addr/:addr/token   | DELETE | ``` {addr: <string>, assets: [<string>]} ``` |  ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ``` {code: 1, message: 'ok'} ```
+| send signed tx | /tx/send | POST | ```{tx: <Object of prepared tx>}``` [view example] (examples/tx_send.md) | ```{tx: <Object of tx>}``` [view example](examples/tx.md)
 
 
 ##### сonfigure your .env
@@ -66,9 +47,10 @@ NODERED_MONGO_URI=mongodb://localhost:27018/data
 NODE_RED_MONGO_COLLECTION_PREFIX=rest
 
 REST_PORT=8081
-NETWORK=development
 NODERED_AUTO_SYNC_MIGRATIONS=true
-NIS=http://localhost:6869
+API_KEY=password
+HTTP_ADMIN=/admin
+RPC=http://localhost:6869
 ```
 
 The options are presented below:
@@ -84,10 +66,25 @@ The options are presented below:
 | NODERED_MONGO_URI   | the URI string for mongo connection, which holds data collections (for instance, processed block's height). In case, it's not specified, then default MONGO_URI connection will be used)
 | NODE_RED_MONGO_COLLECTION_PREFIX   | the collection prefix for node-red collections in mongo (If not specified, then the collections will be created without prefix)
 | REST_PORT   | rest plugin port
-| NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
+| API_KEY | api key for node waves [private requests]
+| HTTP_ADMIN | admin path for nodered or false (if not publish as default)
+| RPC   | the path to waves rest api for get balance for user 
+
+#### Configure env for tests
+
+
+| name | description|
+| ------ | ------ |
+| ACCOUNT_ONE | address for first account
+| ACCOUNT_TWO | address for second account
+| PRIVATE_KEY_ONE | private key for first account
+| PUBLIC_KEY_ONE | public key for first account
+| PRIVATE_KEY_TWO | private key for second account
+| PUBLIC_KEY_TWO | public key for second account
 | RPC | rpc path for node waves api 
-| BLOCK_GENERATION_TIME | generation time for block
+
+
 
 License
 ----
