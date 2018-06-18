@@ -52,6 +52,7 @@ let config = {
       settings: {
         node,
         requests,
+        ['request-promise']: require('request-promise'),
         apiKey: process.env.API_KEY || 'password',
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'waves',
