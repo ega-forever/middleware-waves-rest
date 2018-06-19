@@ -23,6 +23,7 @@ const accountModel = require('../models/accountModel'),
   txModel = require('./models/txModel'),
   clearQueues = require('./helpers/clearQueues'),
   connectToQueue = require('./helpers/connectToQueue'),
+  WavesAPI = require('@waves/waves-api'),
   consumeMessages = require('./helpers/consumeMessages'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
@@ -53,7 +54,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     await clearQueues(amqpInstance);
   });
 
-  it('address/create from post request', async () => {
+  it('address/create from post request and check send event user.created in internal', async () => {
     const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);
 
@@ -91,14 +92,31 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('tx/send send signedTransaction', async () => {
-    tx = signPrivateTransaction(config.dev.privateKeys[1], {
-      senderPublicKey: config.dev.publicKeys[1],
-      recipient: accounts[0],
-      fee: 100000,
-      amount: 100,
-      type: 4,
-      timestamp: Date.now()
+    const Waves = WavesAPI.create({
+      networkByte: 'CUSTOM',
+      nodeAddress: config.node.rpc,
+      matcherAddress: config.dev.matcherAddress,
+      minimumSeedLength: 1
     });
+    const seed = Waves.Seed.fromExistingPhrase(config.dev.seedPhraseOne);
+    const transferData = {
+      senderPublicKey: seed.keyPair.publicKey,
+      // An arbitrary address; mine, in this example
+      recipient: '3Jk2fh8aMBmhCQCkBcUfKBSEEa3pDMkDjCr',
+      // ID of a token, or WAVES
+      assetId: 'WAVES',
+      // The real amount is the given number divided by 10^(precision of the token)
+      amount: 10000000,
+      // The same rules for these two fields
+      feeAssetId: 'WAVES',
+      fee: 100000,
+      // 140 bytes of data (it's allowed to use Uint8Array here)
+      attachment: '',
+      timestamp: Date.now()
+    };
+    const Transactions = Waves.Transactions;
+    const transferTransaction = new Transactions.TransferTransaction(transferData);
+    const tx  = await transferTransaction.prepareForAPI(seed.keyPair.privateKey);
 
     await new Promise((res, rej) => {
       request({
@@ -110,7 +128,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           return rej(err || resp);
         
         const body = resp.body;
-        expect(body.senderPublicKey).to.eq(config.dev.publicKeys[1]);
+        expect(body.senderPublicKey).to.eq(seed.keyPair.publicKey);
         expect(body.fee).to.eq(100000);
         expect(body.id).to.not.empty;
         res();
