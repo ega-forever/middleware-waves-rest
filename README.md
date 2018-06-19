@@ -82,7 +82,7 @@ The options are presented below:
 | PUBLIC_KEY_ONE | public key for first account
 | PRIVATE_KEY_TWO | private key for second account
 | PUBLIC_KEY_TWO | public key for second account
-| RPC | rpc path for node waves api 
+| SEED_PHARSE_ONE | seed pharse for first account
 
 
 
