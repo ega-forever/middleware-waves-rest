@@ -8,6 +8,8 @@ const config = require('../../config');
 
 config['dev'] = {
   'apiKey': process.env.API_KEY || 'password',
+  'seedPhraseOne': process.env.SEED_PHRASE_ONE || 'foo0',
+  'matcherAddress': process.env.RPC_MATCHER || config.node.rpc,
   'accounts':  [
     process.env.ACCOUNT_ONE  || '3JfE6tjeT7PnpuDQKxiVNLn4TJUFhuMaaT5',
     process.env.ACCOUNT_TWO  || '3Jk2fh8aMBmhCQCkBcUfKBSEEa3pDMkDjCr'

@@ -10,14 +10,12 @@ const request = require('request-promise'),
   Promise = require('bluebird'),
   log = bunyan.createLogger({name: 'wavesBlockprocessor.nodeSenderService'});
 
-let node = require('../config').node;
+let configRpc = require('../config').node;
 
 
 const getFrom = query => makeRequest(query, 'GET');
-
-
-const setNodeConfig = (newNode) => {
-  node = newNode;
+const setRpcConfig = (newConfig) => {
+  configRpc = newConfig;
 };
 
 const privatePost = (query, body, apiKey) => makeRequest(query, 'POST', body, {
@@ -28,7 +26,7 @@ const makeRequest = function (path, method, body, headers = {})  {
   const options = {
     method,
     body,
-    uri: new URL(path, node.rpc),
+    uri: new URL(path, configRpc.rpc),
     json: true,
     headers
   };
@@ -60,8 +58,6 @@ const createBlock = (block) => {
     hash: block.signature
   });
 };
-
-
 
 /**
  * @return {Promise return Number}
@@ -106,54 +102,30 @@ const getBlockByHash = async (hash) => {
 };
 
 
-
 /**
- * 
- * @param {String} apiKey 
- * @param {Object} tx
- * @return {Promise return Object}
- */
-const sendIssueTransaction = async (apiKey, tx) => {
-  return await privatePost('assets/broadcast/issue', tx, apiKey);
-};
-
-/**
- * only for test
- * @param {String} apiKey 
  * @param {Object} tx 
+ * @param {String} rpcAddress
  * @return {Promise}
  */
-const sendTransaction = async (apiKey, tx) => {
-  return await privatePost('transactions/broadcast', tx, apiKey);
-};
-
-/**
- * only for test
- * @param {String} apiKey
- * @param {Object} tx
- * @return {Promise}
- */
-const sendAssetTransaction = async (apiKey, tx) => {
-  return await privatePost('assets/broadcast/transfer', tx, apiKey);
+const sendTransactionFromLib = (tx, rpcAddress) => {
+  return request({
+    method: 'POST',
+    body: tx,
+    uri: new URL('/assets/broadcast/transfer', rpcAddress),
+    json: true
+  });
 };
 
 
-const sendAliasTransaction = async (apiKey, tx) => {
-  return await privatePost('alias/broadcast/create', tx, apiKey);
-};
 
 
 module.exports = {  
   getBalanceByAddress,
   getBalanceByAddressAndAsset,
 
+  sendTransactionFromLib,
 
-  sendAliasTransaction,
-  sendAssetTransaction,
-  sendTransaction,
-  sendIssueTransaction,
-
-  setNodeConfig,
+  setRpcConfig,
   getLastBlockNumber,
   getBlockByNumber,
   getBlockByHash,
