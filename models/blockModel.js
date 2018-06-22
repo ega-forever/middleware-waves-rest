@@ -14,11 +14,11 @@ const mongoose = require('mongoose'),
 
 const Block = new mongoose.Schema({
   _id: {type: String},
-  version: {type: String},
+  version: {type: Number},
   number: {type: Number, unique: true, index: true},
   timestamp: {type: Date, index: true, required: true},
-  blocksize: {type: String},
-  fee: {type: String},
+  blocksize: {type: Number},
+  fee: {type: mongoose.Schema.Types.Long},
   created: {type: Date, required: true, default: Date.now}
 }, {_id: false});
 

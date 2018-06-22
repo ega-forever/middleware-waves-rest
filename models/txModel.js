@@ -11,6 +11,8 @@
 const mongoose = require('mongoose'),
   config = require('../config');
 
+require('mongoose-long')(mongoose);
+
 const TX = new mongoose.Schema({
   _id: {type: String},
   blockNumber: {type: Number, required: true, index: true, default: -1},
@@ -27,7 +29,7 @@ const TX = new mongoose.Schema({
   attachment: {type: String},
   alias: {type: String},
   transferCount: {type: Number},
-  totalAmount: {type: Number},
+  totalAmount: {type: mongoose.Schema.Types.Long},
   script: {type: String},
   fee: {type: mongoose.Schema.Types.Long},
   minSponsoredAssetFee: {type: mongoose.Schema.Types.Long},

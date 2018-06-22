@@ -33,13 +33,8 @@
     "babel-eslint": "^8.0.2",
     "chai": "^4.1.1",
     "eslint": "^4.6.1",
-    "base58-native": "^0.1.4",
-    "bytebuffer": "^5.0.1",
-    "axlsign": "github:wavesplatform/curve25519-js",
     "eslint-plugin-chronobank": "github:chronobank/eslint-plugin-chronobank",
     "mocha": "^3.5.0",
-    "moment": "^2.21.0",
-    "sockjs-client": "^1.1.4",
-    "webstomp-client": "^1.0.6"
+    "moment": "^2.21.0"
   }
 }
