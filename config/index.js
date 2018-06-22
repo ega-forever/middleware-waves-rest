@@ -48,7 +48,6 @@ let config = {
       connections: {
         primary: mongoose
       },
-
       settings: {
         node,
         requests,
@@ -67,8 +66,4 @@ let config = {
 };
 
 
-module.exports = (() => {
-  //for easy tests
-  config.rabbit = config.nodered.functionGlobalContext.settings.rabbit;
-  return config;
-})();
+module.exports = config;

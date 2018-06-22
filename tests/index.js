@@ -20,26 +20,24 @@ mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
 const accountModel = require('../models/accountModel'),
-  txModel = require('./models/txModel'),
+  txModel = require('../models/txModel'),
   clearQueues = require('./helpers/clearQueues'),
-  connectToQueue = require('./helpers/connectToQueue'),
   WavesAPI = require('@waves/waves-api'),
-  consumeMessages = require('./helpers/consumeMessages'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
-  signPrivateTransaction = require('./services/signPrivateTransaction'),
   request = require('request'),
   amqp = require('amqplib');
 
 let accounts, amqpInstance;
+const tokenForAsset = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
 
 describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
 
   before(async () => {
     await txModel.remove();
     await accountModel.remove();    
-    
-    amqpInstance = await amqp.connect(config.rabbit.url);
+
+    amqpInstance = await amqp.connect(config.nodered.functionGlobalContext.settings.rabbit.url);
 
     accounts = config.dev.accounts;
     await saveAccountForAddress(accounts[0]);
@@ -78,11 +76,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
       (async () => {
         const channel = await amqpInstance.createChannel();
         await channel.assertExchange('internal', 'topic', {durable: false});
-        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
-        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', 
-          `${config.rabbit.serviceName}_user.created`
-        );
-        channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
+        await channel.assertQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`);
+        await channel.bindQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, 'internal', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_user.created`);
+        channel.consume(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, async (message) => {
           const content = JSON.parse(message.content);
           expect(content.address).to.be.equal(newAddress);
         }, {noAck: true});
@@ -122,7 +118,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       request({
         url: `http://localhost:${config.rest.port}/tx/send`,
         method: 'POST',
-        json: {tx}
+        json: tx
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200)
           return rej(err || resp);
@@ -135,46 +131,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
       });
     });
   });
-
-  // it('address/create from rabbit mq', async () => {
-  //   const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
-  //   accounts.push(newAddress);    
-
-  //   await Promise.all([
-  //     (async () => {
-  //       const channel = await amqpInstance.createChannel();
-  //       const info = {address: newAddress};
-  //       await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
-    
-  //       await Promise.delay(3000);
-    
-  //       const account = await getAccountFromMongo(newAddress);
-  //       expect(account).not.to.be.null;
-  //       expect(account.isActive).to.be.true;
-  //       expect(account.balance.toNumber()).to.be.equal(0);
-  //     })(),
-  //     (async () => {
-  //       const channel = await amqpInstance.createChannel();
-  //       await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
-  //       await consumeMessages(1, channel, (message) => {
-  //         const content = JSON.parse(message.content);
-  //         expect(content.address).to.be.equal(newAddress);
-  //       });
-  //     })()
-  //   ]);
-  // });
-
-  // it('address/update balance address by amqp', async () => {
-  //   const channel = await amqpInstance.createChannel();
-  //   const info = {address: accounts[0]};
-  //   await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
-
-  //   await Promise.delay(3000);
-
-  //   const account = await getAccountFromMongo(accounts[0]);
-  //   expect(account).not.to.be.null;
-  //   expect(account.balance.toNumber()).to.be.greaterThan(0);
-  // });
 
   it('address/remove by rest', async () => {
     const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
@@ -195,35 +151,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
       });
     });
   });
-
-  // it('address/remove from rabbit mq', async () => {
-  //   const removeAddress = _.pullAt(accounts, accounts.length-1)[0];    
-
-  //   await Promise.all([
-  //     (async () => {
-  //       const channel = await amqpInstance.createChannel();
-  //       const info = {address: removeAddress};
-  //       await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
-    
-  //       await Promise.delay(3000);
-    
-  //       const account = await getAccountFromMongo(removeAddress);
-  //       expect(account).not.to.be.null;
-  //       expect(account.isActive).to.be.false;
-  //     })(),
-  //     (async () => {
-  //       const channel = await amqpInstance.createChannel();
-  //       await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
-  //       return await consumeMessages(1, channel, (message) => {
-  //         const content = JSON.parse(message.content);
-  //         expect(content.address).to.be.equal(removeAddress);
-  //       });
-  //     })()
-  //   ]);
-  // });
-
-  const tokenForAsset = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
-  
 
   it('address/add asset by rest for right', async () => {
     const address = accounts[0];
@@ -325,26 +252,26 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
     const txs = [{
-      'recipient' : accounts[1],
-      'type' : '257',
-      'sender' : accounts[0],
-      'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      recipient : accounts[1],
+      type : '257',
+      sender : accounts[0],
+      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
       amount: 200,
-      timeStamp: Date.now(),
-      'blockNumber' : 1425994
+      timestamp: Date.now(),
+      blockNumber : 1425994
     }, {
-      'recipient' : 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
-      'type' : '257',
-      timeStamp: Date.now(),
-      'sender' : 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
-      'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      recipient : 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
+      type : '257',
+      timestamp: Date.now(),
+      sender : 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
+      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
       amount: 100,
-      'blockNumber' : 1425994
+      blockNumber : 1425994
     }];
     
-    exampleTransactionHash = txs[0].hash;
-    await new txModel(txs[0]).save();
-    await new txModel(txs[1]).save();
+    exampleTransactionHash = txs[0]._id;
+    await txModel.create(txs[0]);
+    await txModel.create(txs[1]);
 
     const query = 'limit=1';
 
@@ -364,9 +291,8 @@ describe('core/rest', function () { //todo add integration tests for query, push
           const respTx = body[0];
           expect(respTx.recipient).to.equal(accounts[1]);
           expect(respTx.sender).to.equal(accounts[0]);
-          expect(respTx.hash).to.equal(exampleTransactionHash);
-          expect(respTx).to.contain.all.keys([
-            'hash', 'blockNumber', 'timestamp', 'amount']
+          expect(respTx.signature).to.equal(exampleTransactionHash);
+          expect(respTx).to.contain.all.keys(['blockNumber', 'timestamp', 'amount']
           );
           res();            
         } catch (e) {
@@ -409,9 +335,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         const respTx = JSON.parse(resp.body);
         expect(respTx.recipient).to.equal(accounts[1]);
         expect(respTx.sender).to.equal(accounts[0]);
-        expect(respTx).to.contain.all.keys([
-          'sender', 'recipient', 'hash', 'blockNumber', 'amount', 'timestamp'
-        ]);
+        expect(respTx).to.contain.all.keys(['sender', 'recipient', 'blockNumber', 'amount', 'timestamp']);
         res();
       });
     });
