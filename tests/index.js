@@ -1,8 +1,8 @@
-/** 
-* Copyright 2017–2018, LaborX PTY
-* Licensed under the AGPL Version 3 license.
-* @author Kirill Sergeev <cloudkserg11@gmail.com>
-*/
+/**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Kirill Sergeev <cloudkserg11@gmail.com>
+ */
 require('dotenv/config');
 
 process.env.USE_MONGO_DATA = 1;
@@ -26,22 +26,26 @@ const accountModel = require('../models/accountModel'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
   request = require('request'),
-  amqp = require('amqplib');
+  amqp = require('amqplib'),
+  ctx = {
+    accounts: [],
+    amqp: {},
+    tx: null
+  };
 
-let accounts, amqpInstance;
-const tokenForAsset = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
+//let accounts, amqpInstance, exampleTransactionHash;
 
-describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
+describe('core/rest', function () {
 
   before(async () => {
     await txModel.remove();
-    await accountModel.remove();    
+    await accountModel.remove();
 
-    amqpInstance = await amqp.connect(config.nodered.functionGlobalContext.settings.rabbit.url);
+    ctx.amqp.instance = await amqp.connect(config.nodered.functionGlobalContext.settings.rabbit.url);
 
-    accounts = config.dev.accounts;
-    await saveAccountForAddress(accounts[0]);
-    await clearQueues(amqpInstance);
+    ctx.accounts = config.dev.accounts;
+    await saveAccountForAddress(ctx.accounts[0]);
+    await clearQueues(ctx.amqp.instance);
   });
 
   after(async () => {
@@ -49,22 +53,22 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   afterEach(async () => {
-    await clearQueues(amqpInstance);
+    await clearQueues(ctx.amqp.instance);
   });
 
   it('address/create from post request and check send event user.created in internal', async () => {
     const newAddress = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
-    accounts.push(newAddress);
+    ctx.accounts.push(newAddress);
 
     await new Promise.all([
-      (async() => {
+      (async () => {
         await new Promise((res, rej) => {
           request({
             url: `http://localhost:${config.rest.port}/addr/`,
             method: 'POST',
             json: {address: newAddress}
           }, async (err, resp) => {
-            if (err || resp.statusCode !== 200) 
+            if (err || resp.statusCode !== 200)
               return rej(err || resp);
             const account = await getAccountFromMongo(newAddress);
             expect(account).not.to.be.null;
@@ -74,7 +78,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         });
       })(),
       (async () => {
-        const channel = await amqpInstance.createChannel();
+        const channel = await ctx.amqp.instance.createChannel();
         await channel.assertExchange('internal', 'topic', {durable: false});
         await channel.assertQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`);
         await channel.bindQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, 'internal', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_user.created`);
@@ -112,7 +116,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     };
     const Transactions = Waves.Transactions;
     const transferTransaction = new Transactions.TransferTransaction(transferData);
-    const tx  = await transferTransaction.prepareForAPI(seed.keyPair.privateKey);
+    const tx = await transferTransaction.prepareForAPI(seed.keyPair.privateKey);
 
     await new Promise((res, rej) => {
       request({
@@ -122,7 +126,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200)
           return rej(err || resp);
-        
+
         const body = resp.body;
         expect(body.senderPublicKey).to.eq(seed.keyPair.publicKey);
         expect(body.fee).to.eq(100000);
@@ -133,7 +137,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('address/remove by rest', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
+    const removeAddress = _.pullAt(ctx.accounts, ctx.accounts.length - 1)[0];
 
     await new Promise((res, rej) => {
       request({
@@ -143,7 +147,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200)
           return rej(err || resp);
-        
+
         const account = await getAccountFromMongo(removeAddress);
         expect(account).not.to.be.null;
         expect(account.isActive).to.be.false;
@@ -152,92 +156,15 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  it('address/add asset by rest for right', async () => {
-    const address = accounts[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'POST',
-        json: {assets: [tokenForAsset]}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-        const account = await getAccountFromMongo(address);
-        expect(account.assets[tokenForAsset]).to.be.equal(0);
-        res();
-      });
-    });
-  });
-
-
-
-  it('address/add asset by rest for error', async () => {
-    const address = accounts[1];
-    const token = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'POST',
-        json: {assets: token}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
-        expect(resp.body.code).to.be.equal(0);
-        expect(resp.body.message).to.be.equal('fail');
-        res();
-      });
-    });
-  });
-
-  it('address/remove asset by rest for right', async () => {
-    const address = accounts[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'DELETE',
-        json: {assets: [tokenForAsset]}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
-        const account = await getAccountFromMongo(address);
-        expect(account.assets[tokenForAsset]).to.be.undefined;
-        res();
-      });
-    });
-  });
-
-  it('address/remove asset by rest for error', async () => {
-    const address = accounts[1];
-    const token = `${_.chain(new Array(35)).map(() => _.random(0, 9)).join('').value()}`;
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'DELETE',
-        json: {assets: token}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
-        
-        expect(resp.body.code).to.be.equal(0);
-        expect(resp.body.message).to.be.equal('fail');
-        res();
-      });
-    });
-  });
-
   it('address/balance by rest', async () => {
-    const address = accounts[0];
+    const address = ctx.accounts[0];
 
     await new Promise((res, rej) => {
       request({
         url: `http://localhost:${config.rest.port}/addr/${address}/balance`,
         method: 'GET',
       }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
+        if (err || resp.statusCode !== 200)
           return rej(err || resp);
 
         const body = JSON.parse(resp.body);
@@ -248,28 +175,26 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  let exampleTransactionHash;
-
   it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
     const txs = [{
-      recipient : accounts[1],
-      type : '257',
-      sender : accounts[0],
-      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      recipient: ctx.accounts[1],
+      type: '257',
+      sender: ctx.accounts[0],
+      _id: `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
       amount: 200,
       timestamp: Date.now(),
-      blockNumber : 1425994
+      blockNumber: 1425994
     }, {
-      recipient : 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
-      type : '257',
+      recipient: 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
+      type: '257',
       timestamp: Date.now(),
-      sender : 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
-      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      sender: 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
+      _id: `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
       amount: 100,
-      blockNumber : 1425994
+      blockNumber: 1425994
     }];
-    
-    exampleTransactionHash = txs[0]._id;
+
+    ctx.tx = txs[0];
     await txModel.create(txs[0]);
     await txModel.create(txs[1]);
 
@@ -277,10 +202,10 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
     await new Promise((res, rej) => {
       request({
-        url: `http://localhost:${config.rest.port}/tx/${accounts[0]}/history?${query}`,
+        url: `http://localhost:${config.rest.port}/tx/${ctx.accounts[0]}/history?${query}`,
         method: 'GET',
       }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
+        if (err || resp.statusCode !== 200)
           return rej(err || resp);
 
         try {
@@ -289,12 +214,12 @@ describe('core/rest', function () { //todo add integration tests for query, push
           expect(body).to.be.an('array').not.empty;
 
           const respTx = body[0];
-          expect(respTx.recipient).to.equal(accounts[1]);
-          expect(respTx.sender).to.equal(accounts[0]);
-          expect(respTx.signature).to.equal(exampleTransactionHash);
+          expect(respTx.recipient).to.equal(ctx.accounts[1]);
+          expect(respTx.sender).to.equal(ctx.accounts[0]);
+          expect(respTx.signature).to.equal(ctx.tx._id);
           expect(respTx).to.contain.all.keys(['blockNumber', 'timestamp', 'amount']
           );
-          res();            
+          res();
         } catch (e) {
           rej(e || resp);
         }
@@ -307,13 +232,12 @@ describe('core/rest', function () { //todo add integration tests for query, push
     const address = 'LAAAAAAAAAAAAAAAALLL';
 
 
-
     await new Promise((res, rej) => {
       request({
         url: `http://localhost:${config.rest.port}/tx/${address}/history`,
         method: 'GET',
       }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
+        if (err || resp.statusCode !== 200)
           return rej(err || resp);
 
         const body = JSON.parse(resp.body);
@@ -326,15 +250,15 @@ describe('core/rest', function () { //todo add integration tests for query, push
   it('GET tx/:hash for transaction [0 => 1]', async () => {
     await new Promise((res, rej) => {
       request({
-        url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
+        url: `http://localhost:${config.rest.port}/tx/${ctx.tx._id}`,
         method: 'GET',
       }, (err, resp) => {
-        if (err || resp.statusCode !== 200) 
+        if (err || resp.statusCode !== 200)
           return rej(err || resp);
 
         const respTx = JSON.parse(resp.body);
-        expect(respTx.recipient).to.equal(accounts[1]);
-        expect(respTx.sender).to.equal(accounts[0]);
+        expect(respTx.recipient).to.equal(ctx.accounts[1]);
+        expect(respTx.sender).to.equal(ctx.accounts[0]);
         expect(respTx).to.contain.all.keys(['sender', 'recipient', 'blockNumber', 'amount', 'timestamp']);
         res();
       });
