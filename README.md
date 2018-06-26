@@ -1,6 +1,6 @@
 # middleware-waves-rest [![Build Status](https://travis-ci.org/ChronoBank/middleware-waves-rest.svg?branch=master)](https://travis-ci.org/ChronoBank/middleware-waves-rest)
 
-Middleware service for which expose rest api
+Middleware service which expose rest api
 
 ### Installation
 
