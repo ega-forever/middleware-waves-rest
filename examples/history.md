@@ -1,7 +1,6 @@
 ```json 
 [{
   "type":"4",
-  "id":"FBrL9hxvTivF6o4RS6vP7UKsUyHcEFS5bZLph7o6C8Qk",
   "sender":"3JfE6tjeT7PnpuDQKxiVNLn4TJUFhuMaaT5",
   "senderPublicKey":"GbGEY3XVc2ohdv6hQBukVKSTQyqP8rjQ8Kigkj6bL57S",
   "fee":"100000",
@@ -11,7 +10,7 @@
   "amount":100,
   "feeAsset":null,
   "attachment":"string",
-  "hash":"56FFotc1da4wr4SrGZ85qGH3E9XrbVawyUVQGF3HWcZfmZw5PQLkgYPDZWcp45xseU1Sr2RjLt6WHrPXf7imgGz5",
+  "signature":"56FFotc1da4wr4SrGZ85qGH3E9XrbVawyUVQGF3HWcZfmZw5PQLkgYPDZWcp45xseU1Sr2RjLt6WHrPXf7imgGz5",
   "transfers":[],
   "timestamp":1528221884910,
   "blockNumber":4925

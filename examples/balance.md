@@ -2,7 +2,11 @@
 {
   "balance":"1028000004216500",
   "assets":{
-    "8V15mJPWMiriHQZwrjLGAoQNP84yutotnSmVrFKBGFtZ":10000000
+    "CleanAir":{
+           "balance" : 900000006,
+           "id" : "Ch3eTbv9JnNAWx8rASh182zroKLwCBbcSfX1PXpb4VZE",
+           "decimals" : 8
+    }
   }
 }
 ```
