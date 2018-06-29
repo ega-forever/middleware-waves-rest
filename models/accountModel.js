@@ -10,9 +10,36 @@
 */
 
 const mongoose = require('mongoose'),
+  _ = require('lodash'),
+  jsesc = require('jsesc'),
   config = require('../config');
 
 require('mongoose-long')(mongoose);
+
+
+const setAssets = (assets) => {
+  return _.chain(assets).toPairs()
+    .map(pair => {
+      pair[0] = jsesc(pair[0].replace(new RegExp(/\./g), '::'));
+      if(pair[0][0] === '$')
+        pair[0] = '/$/' + pair[0].slice(1);
+      return pair;
+    })
+    .fromPairs()
+    .value();
+};
+
+const getAssets = (mosaics) => {
+  return _.chain(mosaics).toPairs()
+    .map(pair => {
+      pair[0] = pair[0].replace(new RegExp(/::/g), '.');
+      if(pair[0].indexOf('/$/') === 0)
+        pair[0] = '$' + pair[0].slice(3);
+      return pair;
+    })
+    .fromPairs()
+    .value();
+};
 
 const Account = new mongoose.Schema({
   address: {
@@ -21,7 +48,7 @@ const Account = new mongoose.Schema({
     required: true,
     validate: [a=>  /^[0-9a-zA-Z]{35}$/.test(a)]
   },
-  assets: {type: mongoose.Schema.Types.Mixed, default: {}},
+  assets: {type: mongoose.Schema.Types.Mixed, default: {}, set: setAssets, get: getAssets},
   balance: {type: mongoose.Schema.Types.Long, default: 0},
   isActive: {type: Boolean, required: true, default: true},
   created: {type: Date, required: true, default: Date.now},

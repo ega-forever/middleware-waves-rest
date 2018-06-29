@@ -9,6 +9,7 @@
     "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
     "dotenv": "^4.0.0",
+    "jsesc": "^2.5.1",
     "lodash": "^4.17.4",
     "middleware_service.sdk": "github:chronobank/middleware-service-sdk",
     "mongoose": "^4.11.11",
@@ -33,13 +34,8 @@
     "babel-eslint": "^8.0.2",
     "chai": "^4.1.1",
     "eslint": "^4.6.1",
-    "base58-native": "^0.1.4",
-    "bytebuffer": "^5.0.1",
-    "axlsign": "github:wavesplatform/curve25519-js",
     "eslint-plugin-chronobank": "github:chronobank/eslint-plugin-chronobank",
     "mocha": "^3.5.0",
-    "moment": "^2.21.0",
-    "sockjs-client": "^1.1.4",
-    "webstomp-client": "^1.0.6"
+    "moment": "^2.21.0"
   }
 }
