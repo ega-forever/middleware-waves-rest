@@ -13,8 +13,10 @@ const mongoose = require('mongoose'),
 
 require('mongoose-long')(mongoose);
 
+
 const TX = new mongoose.Schema({
   _id: {type: String},
+  signature: {type: String},
   blockNumber: {type: Number, required: true, index: true, default: -1},
   timestamp: {type: Number, required: true, index: true, default: Date.now},
   amount: {type: mongoose.Schema.Types.Long},
