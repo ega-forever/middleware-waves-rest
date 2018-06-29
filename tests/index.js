@@ -216,7 +216,7 @@ describe('core/rest', function () {
           const respTx = body[0];
           expect(respTx.recipient).to.equal(ctx.accounts[1]);
           expect(respTx.sender).to.equal(ctx.accounts[0]);
-          expect(respTx.signature).to.equal(ctx.tx._id);
+          expect(respTx.id).to.equal(ctx.tx._id);
           expect(respTx).to.contain.all.keys(['blockNumber', 'timestamp', 'amount']
           );
           res();
