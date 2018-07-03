@@ -9,14 +9,16 @@
 */
 require('dotenv').config();
 const path = require('path'),
+  requests = require('../services/nodeRequests'),
   mongoose = require('mongoose'),
-  requests = require('../services/nodeRequests');
-
-const node = {
-  rpc: process.env.RPC || 'http://localhost:6869',
-  network: process.env.NETWORK || 'testnet',
-  blockGenerationTime: process.env.BLOCK_GENERATION_TIME || 60
-};
+  rest = {
+    domain: process.env.DOMAIN || 'localhost',
+    port: parseInt(process.env.REST_PORT) || 8081,
+    auth: process.env.USE_AUTH || false
+  }, 
+  node = {
+    rpc: process.env.RPC || 'http://localhost:6869'
+  };
 
 let config = {
   mongo: {
@@ -31,11 +33,7 @@ let config = {
     }
   },
   node,
-  rest: {
-    domain: process.env.DOMAIN || 'localhost',
-    port: parseInt(process.env.REST_PORT) || 8081,
-    auth: process.env.USE_AUTH || false
-  },
+  rest,
   nodered: {
     mongo: {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
@@ -44,14 +42,17 @@ let config = {
     autoSyncMigrations: process.env.NODERED_AUTO_SYNC_MIGRATIONS || true,
     customNodesDir: [path.join(__dirname, '../')],
     migrationsDir: path.join(__dirname, '../migrations'),
+    migrationsInOneFile: true,
+    httpAdminRoot: process.env.HTTP_ADMIN || false,
     functionGlobalContext: {
       connections: {
         primary: mongoose
       },
-      requests,
-      nodeConfig: node,
-
       settings: {
+        node,
+        requests,
+        ['request-promise']: require('request-promise'),
+        apiKey: process.env.API_KEY || 'password',
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'waves',
           collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'waves'
@@ -66,8 +67,4 @@ let config = {
 };
 
 
-module.exports = (() => {
-  //for easy tests
-  config.rabbit = config.nodered.functionGlobalContext.settings.rabbit;
-  return config;
-})();
+module.exports = config;

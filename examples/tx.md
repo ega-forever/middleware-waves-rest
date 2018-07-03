@@ -1,0 +1,18 @@
+```json 
+{
+  "type":"4",
+  "sender":"3JfE6tjeT7PnpuDQKxiVNLn4TJUFhuMaaT5",
+  "senderPublicKey":"GbGEY3XVc2ohdv6hQBukVKSTQyqP8rjQ8Kigkj6bL57S",
+  "fee":"100000",
+  "signature":"56FFotc1da4wr4SrGZ85qGH3E9XrbVawyUVQGF3HWcZfmZw5PQLkgYPDZWcp45xseU1Sr2RjLt6WHrPXf7imgGz5",
+  "recipient":"3Jk2fh8aMBmhCQCkBcUfKBSEEa3pDMkDjCr",
+  "assetId":null,
+  "amount":100,
+  "feeAsset":null,
+  "attachment":"string",
+  "signature":"56FFotc1da4wr4SrGZ85qGH3E9XrbVawyUVQGF3HWcZfmZw5PQLkgYPDZWcp45xseU1Sr2RjLt6WHrPXf7imgGz5",
+  "transfers":[],
+  "timestamp":1528221884910,
+  "blockNumber":4925
+  }
+  ```

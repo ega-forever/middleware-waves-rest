@@ -3,7 +3,6 @@ ENV NETWORK_TYPE DEFAULT_NETWORK_TYPE
 ENV NPM_CONFIG_LOGLEVEL warn
 ARG RELEASE=latest
 
-
 RUN apt update && \
     apt install -y python make g++ git build-essential && \
     npm install -g pm2@2.7.1 && \
@@ -15,6 +14,7 @@ RUN mkdir src && cd src && \
     dmt init && \
     dmt install middleware-waves-blockprocessor"#$RELEASE" \
     middleware-waves-balance-processor"#$RELEASE" \
-    middleware-waves-rest"#$RELEASE" \
+    middleware-waves-rest"#$RELEASE"
+
 EXPOSE 8080
 CMD pm2-docker start /mnt/config/${NETWORK_TYPE}/ecosystem.config.js

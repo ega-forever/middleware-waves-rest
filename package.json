@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "middleware_service.sdk": "github:chronobank/middleware-service-sdk",
     "amqplib": "^0.5.1",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
     "dotenv": "^4.0.0",
+    "jsesc": "^2.5.1",
     "lodash": "^4.17.4",
+    "middleware_service.sdk": "github:chronobank/middleware-service-sdk",
     "mongoose": "^4.11.11",
     "mongoose-long": "^0.1.1",
     "request": "^2.83.0",
@@ -29,13 +30,12 @@
   "homepage": "https://github.com/ChronoBank/middleware-waves-rest#readme",
   "description": "Middleware WAVES rest",
   "devDependencies": {
+    "@waves/waves-api": "^0.28.4",
     "babel-eslint": "^8.0.2",
     "chai": "^4.1.1",
     "eslint": "^4.6.1",
     "eslint-plugin-chronobank": "github:chronobank/eslint-plugin-chronobank",
     "mocha": "^3.5.0",
-    "moment": "^2.21.0",
-    "sockjs-client": "^1.1.4",
-    "webstomp-client": "^1.0.6"
+    "moment": "^2.21.0"
   }
 }

@@ -10,22 +10,23 @@ const request = require('request-promise'),
   Promise = require('bluebird'),
   log = bunyan.createLogger({name: 'wavesBlockprocessor.nodeSenderService'});
 
-let node = require('../config').node;
+let configRpc = require('../config').node;
 
 
 const getFrom = query => makeRequest(query, 'GET');
-
-
-const setNodeConfig = (newNode) => {
-  node = newNode;
+const setRpcConfig = (newConfig) => {
+  configRpc = newConfig;
 };
 
+const privatePost = (query, body, apiKey) => makeRequest(query, 'POST', body, {
+  'X-API-Key': apiKey
+});
 
 const makeRequest = function (path, method, body, headers = {})  {
   const options = {
     method,
     body,
-    uri: new URL(path, node.rpc),
+    uri: new URL(path, configRpc.rpc),
     json: true,
     headers
   };
@@ -57,8 +58,6 @@ const createBlock = (block) => {
     hash: block.signature
   });
 };
-
-
 
 /**
  * @return {Promise return Number}
@@ -103,13 +102,30 @@ const getBlockByHash = async (hash) => {
 };
 
 
+/**
+ * @param {Object} tx 
+ * @param {String} rpcAddress
+ * @return {Promise}
+ */
+const sendTransactionFromLib = (tx, rpcAddress) => {
+  return request({
+    method: 'POST',
+    body: tx,
+    uri: new URL('/assets/broadcast/transfer', rpcAddress),
+    json: true
+  });
+};
+
+
 
 
 module.exports = {  
   getBalanceByAddress,
   getBalanceByAddressAndAsset,
 
-  setNodeConfig,
+  sendTransactionFromLib,
+
+  setRpcConfig,
   getLastBlockNumber,
   getBlockByNumber,
   getBlockByHash,
